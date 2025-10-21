@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "261527270397",
+    "firebase_url": "https://db-iot-c500c-default-rtdb.firebaseio.com",
+    "project_id": "db-iot-c500c",
+    "storage_bucket": "db-iot-c500c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261527270397:android:cc9ba67fdb790f54b49f94",
+        "android_client_info": {
+          "package_name": "com.example.app_iot_db"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATyB_guc64J3q1lY81Skyz5tKFjAt4MVc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
