@@ -17,17 +17,17 @@ class _LoginPageState extends State<LoginPage> {
   final _auth = FirebaseAuth.instance;
 
   // 🎨 Paleta de colores YanaGuard
-  final Color azulProfundo = const Color(0xFF1E3A8A); // principal
-  final Color naranjaAndino = const Color(0xFFF59E0B); // acento
-  final Color verdeQuillu = const Color(0xFF4CAF50); // complementario
-  final Color beigeCalido = const Color(0xFFF4EBD0); // fondo claro
-  final Color azulNoche = const Color(0xFF0F172A); // modo oscuro
+  final Color azulProfundo = const Color(0xFF1E3A8A);
+  final Color naranjaAndino = const Color(0xFFF59E0B);
+  final Color verdeQuillu = const Color(0xFF4CAF50);
+  final Color beigeCalido = const Color(0xFFF4EBD0);
+  final Color azulNoche = const Color(0xFF0F172A);
 
+  // 🔹 LOGIN NORMAL CON CORREO Y CONTRASEÑA
   Future<void> _login() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
 
-    // Función local que hace el intento real
     Future<UserCredential> attemptSignIn() {
       return _auth.signInWithEmailAndPassword(
         email: _emailCtrl.text.trim(),
@@ -38,29 +38,24 @@ class _LoginPageState extends State<LoginPage> {
     bool retried = false;
 
     try {
-      // Primer intento
       await attemptSignIn();
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/menu');
     } on TypeError catch (e) {
-      // Capturamos el error de Pigeon / cast inesperado
-      debugPrint('TypeError during email login: $e');
+      debugPrint('TypeError durante login con correo: $e');
 
       if (!retried) {
         retried = true;
-        // Mensaje visible rápido (opcional)
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Error transitorio de autenticación. Reintentando automáticamente...',
-              ),
+                  'Error transitorio de autenticación. Reintentando automáticamente...'),
               duration: Duration(seconds: 3),
             ),
           );
         }
 
-        // Pequeña espera para dejar estabilizar el canal nativo
         await Future.delayed(const Duration(seconds: 1));
 
         try {
@@ -69,14 +64,12 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pushReplacementNamed(context, '/menu');
           return;
         } catch (e2) {
-          // si falla el retry, muestra info al usuario
-          debugPrint('Retry after TypeError failed: $e2');
+          debugPrint('Retry después de TypeError falló: $e2');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'No fue posible iniciar sesión (intenta cerrar la app y abrirla de nuevo).\nDetalle: $e2',
-                ),
+                    'No fue posible iniciar sesión. Intenta cerrar la app y abrirla de nuevo.\nDetalle: $e2'),
               ),
             );
           }
@@ -88,12 +81,11 @@ class _LoginPageState extends State<LoginPage> {
         SnackBar(content: Text(e.message ?? 'Error de autenticación')),
       );
     } catch (e) {
-      // Otros errores inesperados
-      debugPrint('Unexpected error during email login: $e');
+      debugPrint('Error inesperado durante login: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error inesperado: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error inesperado: $e')),
+        );
       }
     } finally {
       if (!mounted) return;
@@ -101,13 +93,23 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  // 🔹 LOGIN CON GOOGLE (reparado)
   Future<void> _signInWithGoogle() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
-    try {
-      final GoogleSignIn googleSignIn = GoogleSignIn();
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
+    final googleSignIn = GoogleSignIn();
+    bool retried = false;
+
+    Future<void> doSignIn() async {
+      try {
+        await googleSignIn.disconnect();
+      } catch (_) {}
+      try {
+        await googleSignIn.signOut();
+      } catch (_) {}
+
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         if (!mounted) return;
         setState(() => _isLoading = false);
@@ -125,17 +127,50 @@ class _LoginPageState extends State<LoginPage> {
       await FirebaseAuth.instance.signInWithCredential(credential);
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/menu');
+    }
+
+    try {
+      await doSignIn();
+    } on TypeError catch (e) {
+      debugPrint('TypeError GoogleSignIn (capturado): $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('Error transitorio en Google Sign-In. Reintentando...'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      if (!retried) {
+        retried = true;
+        await Future.delayed(const Duration(seconds: 1));
+        try {
+          await doSignIn();
+        } catch (e2) {
+          debugPrint('Retry after TypeError falló: $e2');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error con Google (intento fallido): $e2'),
+              ),
+            );
+          }
+        }
+      }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error con Google: $e')));
+      debugPrint('Error general en GoogleSignIn: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error con Google: $e')),
+        );
+      }
     } finally {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
+  // 🔹 RESTABLECER CONTRASEÑA
   Future<void> _showResetPasswordDialog(BuildContext context) async {
     final TextEditingController emailCtrl = TextEditingController();
 
@@ -144,9 +179,8 @@ class _LoginPageState extends State<LoginPage> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: beigeCalido,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(
             "Restablecer contraseña",
             style: TextStyle(color: azulProfundo, fontWeight: FontWeight.bold),
@@ -164,17 +198,13 @@ class _LoginPageState extends State<LoginPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                if (!mounted) return;
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(context),
               child: Text("Cancelar", style: TextStyle(color: azulProfundo)),
             ),
             ElevatedButton(
               onPressed: () async {
                 final email = emailCtrl.text.trim();
                 if (email.isEmpty || !email.contains('@')) {
-                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Ingresa un correo válido')),
                   );
@@ -185,11 +215,7 @@ class _LoginPageState extends State<LoginPage> {
                   await FirebaseAuth.instance.sendPasswordResetEmail(
                     email: email,
                   );
-                  if (!mounted) return;
                   Navigator.pop(context);
-
-                  // Mostrar alerta informativa solo si sigue montado
-                  if (!mounted) return;
                   showDialog(
                     context: context,
                     builder: (context) {
@@ -203,17 +229,13 @@ class _LoginPageState extends State<LoginPage> {
                           style: TextStyle(color: naranjaAndino),
                         ),
                         content: Text(
-                          "Hemos enviado un enlace de restablecimiento a:\n\n"
-                          "$email\n\n"
-                          "📩 Si no lo ves, revisa también la carpeta de SPAM.",
+                          "Hemos enviado un enlace a:\n\n"
+                          "$email\n\n📩 Si no lo ves, revisa también la carpeta de SPAM.",
                           style: const TextStyle(fontSize: 16),
                         ),
                         actions: [
                           TextButton(
-                            onPressed: () {
-                              if (!mounted) return;
-                              Navigator.pop(context);
-                            },
+                            onPressed: () => Navigator.pop(context),
                             child: Text(
                               "Entendido",
                               style: TextStyle(color: azulProfundo),
@@ -224,7 +246,6 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   );
                 } on FirebaseAuthException catch (e) {
-                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error: ${e.message}')),
                   );
@@ -246,6 +267,7 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  // 🔹 UI DEL LOGIN
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -272,9 +294,6 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ---------- Aquí se cambió el Icon por la imagen del logo ----------
-                    // Asegúrate de tener: assets/images/logo_yanaguard.jpg
-                    // declarado en pubspec.yaml y el archivo en esa ruta.
                     CircleAvatar(
                       radius: 40,
                       backgroundColor: Colors.transparent,
@@ -388,7 +407,6 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 20),
                     TextButton(
                       onPressed: () {
-                        if (!mounted) return;
                         Navigator.push(
                           context,
                           MaterialPageRoute(
