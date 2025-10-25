@@ -5,15 +5,13 @@ import 'login.dart';
 import 'main_menu.dart';
 import 'dashboard.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-// Si usas flutterfire CLI, importa el archivo generated (opcional).
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions
-        .currentPlatform, // si generaste firebase_options.dart
+        .currentPlatform,
   );
   runApp(const MyApp());
 }

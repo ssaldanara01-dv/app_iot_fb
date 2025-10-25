@@ -113,8 +113,6 @@ class DashboardPage extends StatelessWidget {
                         title: 'Movimientos (24h)',
                         value: motions24h.toString(),
                         subtitle: 'Último: ${_formatDateTime(lastMotion)}',
-                        icon: Icons.motion_photos_on,
-                        iconColor: naranjaAndino,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -123,8 +121,6 @@ class DashboardPage extends StatelessWidget {
                         title: 'Alarmas (24h)',
                         value: alarms24h.toString(),
                         subtitle: 'Último: ${_formatDateTime(lastAlarm)}',
-                        icon: Icons.alarm,
-                        iconColor: Colors.redAccent,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -133,8 +129,6 @@ class DashboardPage extends StatelessWidget {
                         title: 'Sistema (cambios 24h)',
                         value: systemChanges24h.toString(),
                         subtitle: 'Último: ${_formatDateTime(lastSystem)}',
-                        icon: Icons.security,
-                        iconColor: azulProfundo,
                       ),
                     ),
                   ],
@@ -301,20 +295,16 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-/// Widget de resumen (tarjeta pequeña usada arriba)
+/// Widget de resumen (tarjeta pequeña usada arriba, sin íconos)
 class _SummaryCard extends StatelessWidget {
   final String title;
   final String value;
   final String subtitle;
-  final IconData icon;
-  final Color iconColor;
 
   const _SummaryCard({
     required this.title,
     required this.value,
     required this.subtitle,
-    required this.icon,
-    required this.iconColor,
     super.key,
   });
 
@@ -325,28 +315,36 @@ class _SummaryCard extends StatelessWidget {
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.all(8),
-                  child: Icon(icon, color: iconColor),
-                ),
-                const SizedBox(width: 10),
-                Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w600))),
-              ],
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
             ),
-            const SizedBox(height: 12),
-            Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: azulProfundo)),
-            const SizedBox(height: 6),
-            Text(subtitle, style: TextStyle(color: azulProfundo.withOpacity(0.8))),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: azulProfundo,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: azulProfundo.withOpacity(0.8),
+                fontSize: 12,
+              ),
+            ),
           ],
         ),
       ),
