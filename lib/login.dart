@@ -16,7 +16,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   final _auth = FirebaseAuth.instance;
 
-  // 🎨 Paleta de colores YanaGuard
+  // 🎨 Paleta YanaGuard
   final Color azulProfundo = const Color(0xFF1E3A8A);
   final Color naranjaAndino = const Color(0xFFF59E0B);
   final Color verdeQuillu = const Color(0xFF4CAF50);
@@ -40,7 +40,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       await attemptSignIn();
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/menu');
+      Navigator.pushReplacementNamed(context, '/main'); // ✅ ruta correcta
     } on TypeError catch (e) {
       debugPrint('TypeError durante login con correo: $e');
 
@@ -61,7 +61,7 @@ class _LoginPageState extends State<LoginPage> {
         try {
           await attemptSignIn();
           if (!mounted) return;
-          Navigator.pushReplacementNamed(context, '/menu');
+          Navigator.pushReplacementNamed(context, '/main');
           return;
         } catch (e2) {
           debugPrint('Retry después de TypeError falló: $e2');
@@ -93,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // 🔹 LOGIN CON GOOGLE (reparado)
+  // 🔹 LOGIN CON GOOGLE
   Future<void> _signInWithGoogle() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
@@ -126,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
 
       await FirebaseAuth.instance.signInWithCredential(credential);
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/menu');
+      Navigator.pushReplacementNamed(context, '/main'); // ✅ ruta correcta
     }
 
     try {
@@ -267,7 +267,7 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  // 🔹 UI DEL LOGIN
+  // 🔹 UI LOGIN
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -15,18 +15,21 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _isLoading = false;
+
   final _auth = FirebaseAuth.instance;
   final _fs = FirebaseFirestore.instance;
 
-  // 🎨 Paleta YanaGuard
+  // 🎨 Paleta de colores YanaGuard
   final Color azulProfundo = const Color(0xFF1E3A8A);
   final Color naranjaAndino = const Color(0xFFF59E0B);
   final Color verdeQuillu = const Color(0xFF4CAF50);
   final Color beigeCalido = const Color(0xFFF4EBD0);
   final Color azulNoche = const Color(0xFF0F172A);
 
+  // 🔹 REGISTRO DE USUARIO
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!mounted) return;
     setState(() => _isLoading = true);
 
     try {
@@ -34,6 +37,7 @@ class _RegisterPageState extends State<RegisterPage> {
       final password = _passCtrl.text;
       final name = _nameCtrl.text.trim();
 
+      // Crear usuario
       final cred = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -44,28 +48,56 @@ class _RegisterPageState extends State<RegisterPage> {
         await user.updateDisplayName(name);
         await user.sendEmailVerification();
 
+        // Crear documento en Firestore
         await _fs.collection('users').doc(user.uid).set({
           'name': name,
           'email': email,
           'createdAt': FieldValue.serverTimestamp(),
+          'verified': false,
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Cuenta creada. Revisa tu correo para verificar.'),
-        ));
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '✅ Cuenta creada. Revisa tu correo para verificar tu dirección.',
+            ),
+          ),
+        );
 
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(); // volver al login
       }
     } on FirebaseAuthException catch (e) {
-      final msg = e.message ?? 'Error al crear usuario';
+      if (!mounted) return;
+
+      String msg;
+      switch (e.code) {
+        case 'email-already-in-use':
+          msg = 'Este correo ya está registrado.';
+          break;
+        case 'invalid-email':
+          msg = 'El correo ingresado no es válido.';
+          break;
+        case 'weak-password':
+          msg = 'La contraseña es demasiado débil (mínimo 6 caracteres).';
+          break;
+        case 'operation-not-allowed':
+          msg = 'El registro con email está deshabilitado en el servidor.';
+          break;
+        default:
+          msg = e.message ?? 'Error desconocido al registrar.';
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$msg (${e.code})')),
+        SnackBar(content: Text('⚠️ $msg')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error inesperado: $e')));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error inesperado: $e')),
+      );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -77,6 +109,7 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  // 🔹 UI REGISTRO
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,11 +150,13 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ),
                       const SizedBox(height: 32),
+
+                      // Nombre
                       TextFormField(
                         controller: _nameCtrl,
                         decoration: InputDecoration(
                           prefixIcon: Icon(Icons.person, color: azulProfundo),
-                          labelText: 'Nombre',
+                          labelText: 'Nombre completo',
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: naranjaAndino),
                             borderRadius: BorderRadius.circular(12),
@@ -135,8 +170,11 @@ class _RegisterPageState extends State<RegisterPage> {
                             : null,
                       ),
                       const SizedBox(height: 16),
+
+                      // Correo
                       TextFormField(
                         controller: _emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           prefixIcon: Icon(Icons.email, color: azulProfundo),
                           labelText: 'Correo electrónico',
@@ -148,14 +186,17 @@ class _RegisterPageState extends State<RegisterPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (v) => (v == null || !v.contains('@'))
-                            ? 'Email inválido'
-                            : null,
+                        validator: (v) =>
+                            (v == null || !v.contains('@') || !v.contains('.'))
+                                ? 'Correo inválido'
+                                : null,
                       ),
                       const SizedBox(height: 16),
+
+                      // Contraseña
                       TextFormField(
                         controller: _passCtrl,
+                        obscureText: true,
                         decoration: InputDecoration(
                           prefixIcon: Icon(Icons.lock, color: azulProfundo),
                           labelText: 'Contraseña',
@@ -167,12 +208,13 @@ class _RegisterPageState extends State<RegisterPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        obscureText: true,
                         validator: (v) => (v == null || v.length < 6)
-                            ? 'Mínimo 6 caracteres'
+                            ? 'Debe tener al menos 6 caracteres'
                             : null,
                       ),
                       const SizedBox(height: 24),
+
+                      // Botón principal
                       _isLoading
                           ? const CircularProgressIndicator()
                           : SizedBox(
@@ -193,7 +235,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ),
                             ),
+
                       const SizedBox(height: 20),
+
+                      // Volver al login
                       TextButton.icon(
                         onPressed: () => Navigator.pop(context),
                         icon: Icon(Icons.arrow_back, color: azulProfundo),
@@ -202,7 +247,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           style: TextStyle(color: azulProfundo),
                         ),
                       ),
-                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
