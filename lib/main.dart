@@ -22,10 +22,6 @@ void main() async {
     print('No se pudo obtener databaseURL: $e');
   }
 
-  // Asegurar autenticación anónima antes de arrancar la UI.
-  // Esto evita que las pantallas intenten leer Realtime DB antes de que auth esté lista.
-  //
-  // Nota: si usas un flujo con login por correo/usuario, puedes eliminar o modificar esto.
   final auth = FirebaseAuth.instance;
   try {
     if (auth.currentUser == null) {
