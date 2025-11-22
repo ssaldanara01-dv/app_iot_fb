@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
+/// 🎨 Paleta YanaGuard
+const Color azulProfundo = Color(0xFF1E3A8A);
+const Color naranjaAndino = Color(0xFFF59E0B);
+const Color verdeQuillu = Color(0xFF4CAF50);
+const Color beigeCalido = Color(0xFFF4EBD0);
+
 class PairingPage extends StatefulWidget {
   const PairingPage({super.key});
 
@@ -16,7 +22,6 @@ class _PairingPageState extends State<PairingPage> {
 
   bool _loading = false;
   String _errorMessage = '';
-  String _debugLog = '';
 
   @override
   void initState() {
@@ -24,31 +29,21 @@ class _PairingPageState extends State<PairingPage> {
     _ensureSignedIn();
   }
 
-  /// Asegura que el usuario esté autenticado antes de cualquier lectura
   Future<void> _ensureSignedIn() async {
     final user = _auth.currentUser;
     if (user == null) {
-      await _auth.signInAnonymously();
-      await Future.delayed(const Duration(milliseconds: 500));
+      try {
+        await _auth.signInAnonymously();
+      } catch (e) {
+        // sin debug
+      }
     }
-    final uid = _auth.currentUser?.uid;
-    _log('Usuario autenticado UID=$uid');
-  }
-
-  void _log(String text) {
-    setState(() {
-      _debugLog += '\n${DateTime.now()} - $text';
-    });
-    debugPrint('📘 DEBUG: $text');
   }
 
   Future<void> _pairDevice() async {
     final code = _codeController.text.trim();
-
     if (code.length != 6) {
-      setState(() {
-        _errorMessage = 'El código debe tener 6 dígitos.';
-      });
+      setState(() => _errorMessage = 'El código debe tener 6 dígitos.');
       return;
     }
 
@@ -58,107 +53,123 @@ class _PairingPageState extends State<PairingPage> {
     });
 
     await _ensureSignedIn();
-    final uid = _auth.currentUser!.uid;
+    final uid = _auth.currentUser?.uid;
 
     try {
-      _log('Buscando código de emparejamiento "$code"...');
+      final pairingSnap = await _db.child('pairing').get();
 
-      // 🔐 Asegúrate de que solo lees dentro de /pairing
-      final pairingRef = FirebaseDatabase.instance.ref('pairing');
-      final snap = await pairingRef.orderByChild('code').equalTo(code).get();
+      if (!pairingSnap.exists) {
+        setState(() {
+          _errorMessage = 'No existen dispositivos en espera.';
+          _loading = false;
+        });
+        return;
+      }
 
-      if (!snap.exists || snap.value == null) {
+      Map<dynamic, dynamic> pairingMap = Map<dynamic, dynamic>.from(
+        pairingSnap.value as Map,
+      );
+
+      String? foundDeviceId;
+
+      pairingMap.forEach((key, value) {
+        if (value is Map && value['code'] == code) {
+          foundDeviceId = key.toString();
+        }
+      });
+
+      if (foundDeviceId == null) {
         setState(() {
           _errorMessage = 'Código inválido o no encontrado.';
           _loading = false;
         });
-        _log('No se encontró el código "$code".');
         return;
       }
 
-      // Encontrar el primer dispositivo que coincide
-      final Map pairingData = snap.value as Map;
-      final entry = pairingData.entries.first;
-      final deviceId = entry.key;
-      final deviceData = entry.value as Map?;
+      final deviceId = foundDeviceId!;
 
-      _log('Código válido para deviceId=$deviceId');
-
-      // 🔥 Vincular el dispositivo al usuario
-      final deviceRef = _db.child('devices/$deviceId');
-
-      await deviceRef.update({
+      await _db.child('devices').child(deviceId).update({
         'ownerUid': uid,
         'pairedAt': DateTime.now().millisecondsSinceEpoch,
       });
 
-      _log('Dispositivo $deviceId vinculado correctamente.');
-
-      // Eliminar el código de pairing para evitar reutilización
-      await _db.child('pairing/$deviceId').remove();
+      await _db.child('pairing').child(deviceId).remove();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Dispositivo emparejado exitosamente')),
+          const SnackBar(
+            content: Text('✅ Dispositivo emparejado exitosamente'),
+          ),
         );
         Navigator.pop(context);
       }
     } catch (e) {
-      _log('Exception: $e');
-      setState(() {
-        _errorMessage =
-            'Error: permiso denegado. Revisa reglas RTDB (¿.read en /pairing?)';
-      });
+      setState(() => _errorMessage = 'Error inesperado: $e');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: beigeCalido,
       appBar: AppBar(
         title: const Text('Emparejar dispositivo'),
+        backgroundColor: azulProfundo,
+        foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _codeController,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              decoration: const InputDecoration(
-                labelText: 'Código de emparejamiento (6 dígitos)',
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Text(
+                    'Ingresa el código de emparejamiento',
+                    style: TextStyle(
+                      color: azulProfundo,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _codeController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.link),
+                    label: Text(
+                      _loading ? 'Emparejando...' : 'Reclamar dispositivo',
+                    ),
+                    onPressed: _loading ? null : _pairDevice,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: naranjaAndino,
+                    ),
+                  ),
+                  if (_errorMessage.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        _errorMessage,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.link),
-              label: Text(_loading ? 'Emparejando...' : 'Reclamar dispositivo'),
-              onPressed: _loading ? null : _pairDevice,
-            ),
-            const SizedBox(height: 12),
-            if (_errorMessage.isNotEmpty)
-              Text(
-                _errorMessage,
-                style: const TextStyle(color: Colors.red),
-              ),
-            const SizedBox(height: 12),
-            const Text(
-              'DEBUG LOG:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Text(
-                  _debugLog,
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
