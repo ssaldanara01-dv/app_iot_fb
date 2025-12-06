@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/register_viewmodel.dart';
+import 'package:app_iot_db/theme/app_colors.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -14,13 +15,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-
-  // 🎨 Paleta de colores YanaGuard
-  final Color azulProfundo = const Color(0xFF1E3A8A);
-  final Color naranjaAndino = const Color(0xFFF59E0B);
-  final Color verdeQuillu = const Color(0xFF4CAF50);
-  final Color beigeCalido = const Color(0xFFF4EBD0);
-  final Color azulNoche = const Color(0xFF0F172A);
 
   @override
   void dispose() {
@@ -62,11 +56,11 @@ class _RegisterPageState extends State<RegisterPage> {
       child: Consumer<RegisterViewModel>(
         builder: (context, vm, child) {
           return Scaffold(
-            backgroundColor: beigeCalido,
+            backgroundColor: AppColors.beigeCalido,
             body: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [azulProfundo, azulNoche],
+                  colors: [AppColors.azulProfundo, AppColors.azulNoche],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -95,7 +89,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               style: TextStyle(
                                 fontSize: 26,
                                 fontWeight: FontWeight.bold,
-                                color: azulProfundo,
+                                color: AppColors.azulProfundo,
                               ),
                             ),
                             const SizedBox(height: 32),
@@ -104,10 +98,10 @@ class _RegisterPageState extends State<RegisterPage> {
                             TextFormField(
                               controller: _nameCtrl,
                               decoration: InputDecoration(
-                                prefixIcon: Icon(Icons.person, color: azulProfundo),
+                                prefixIcon: Icon(Icons.person, color: AppColors.azulProfundo),
                                 labelText: 'Nombre completo',
                                 focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: naranjaAndino),
+                                  borderSide: BorderSide(color: AppColors.naranjaAndino),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 border: OutlineInputBorder(
@@ -125,10 +119,10 @@ class _RegisterPageState extends State<RegisterPage> {
                               controller: _emailCtrl,
                               keyboardType: TextInputType.emailAddress,
                               decoration: InputDecoration(
-                                prefixIcon: Icon(Icons.email, color: azulProfundo),
+                                prefixIcon: Icon(Icons.email, color: AppColors.azulProfundo),
                                 labelText: 'Correo electrónico',
                                 focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: naranjaAndino),
+                                  borderSide: BorderSide(color: AppColors.naranjaAndino),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 border: OutlineInputBorder(
@@ -147,10 +141,10 @@ class _RegisterPageState extends State<RegisterPage> {
                               controller: _passCtrl,
                               obscureText: true,
                               decoration: InputDecoration(
-                                prefixIcon: Icon(Icons.lock, color: azulProfundo),
+                                prefixIcon: Icon(Icons.lock, color: AppColors.azulProfundo),
                                 labelText: 'Contraseña',
                                 focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: naranjaAndino),
+                                  borderSide: BorderSide(color: AppColors.naranjaAndino),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 border: OutlineInputBorder(
@@ -172,7 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     child: ElevatedButton(
                                       onPressed: () => _onRegisterPressed(vm),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: naranjaAndino,
+                                        backgroundColor: AppColors.naranjaAndino,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(12),
                                         ),
@@ -190,10 +184,10 @@ class _RegisterPageState extends State<RegisterPage> {
                             // Volver al login
                             TextButton.icon(
                               onPressed: () => Navigator.pop(context),
-                              icon: Icon(Icons.arrow_back, color: azulProfundo),
+                              icon: Icon(Icons.arrow_back, color: AppColors.azulProfundo),
                               label: Text(
                                 'Volver al login',
-                                style: TextStyle(color: azulProfundo),
+                                style: TextStyle(color: AppColors.azulProfundo),
                               ),
                             ),
                           ],

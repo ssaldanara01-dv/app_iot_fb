@@ -2,11 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/pairing_view_model.dart';
-
-const Color azulProfundo = Color(0xFF1E3A8A);
-const Color naranjaAndino = Color(0xFFF59E0B);
-const Color verdeQuillu = Color(0xFF4CAF50);
-const Color beigeCalido = Color(0xFFF4EBD0);
+import 'package:app_iot_db/theme/app_colors.dart';
 
 class PairingPage extends StatelessWidget {
   const PairingPage({super.key});
@@ -14,10 +10,10 @@ class PairingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: beigeCalido,
+      backgroundColor: AppColors.beigeCalido,
       appBar: AppBar(
         title: const Text('Emparejar dispositivo'),
-        backgroundColor: azulProfundo,
+        backgroundColor: AppColors.azulProfundo,
         foregroundColor: Colors.white,
       ),
       body: Consumer<PairingViewModel>(
@@ -32,7 +28,7 @@ class PairingPage extends StatelessWidget {
                     Text(
                       'Ingresa el código de emparejamiento',
                       style: TextStyle(
-                        color: azulProfundo,
+                        color: AppColors.azulProfundo,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -63,7 +59,7 @@ class PairingPage extends StatelessWidget {
                               }
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: naranjaAndino,
+                        backgroundColor: AppColors.naranjaAndino,
                       ),
                     ),
                     if (vm.error.isNotEmpty)

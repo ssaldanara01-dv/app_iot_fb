@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/login_viewmodel.dart';
+import 'package:app_iot_db/theme/app_colors.dart';
+
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -13,13 +15,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-
-  // 🎨 Paleta YanaGuard (se mantiene para la UI)
-  final Color azulProfundo = const Color(0xFF1E3A8A);
-  final Color naranjaAndino = const Color(0xFFF59E0B);
-  final Color verdeQuillu = const Color(0xFF4CAF50);
-  final Color beigeCalido = const Color(0xFFF4EBD0);
-  final Color azulNoche = const Color(0xFF0F172A);
 
   @override
   void dispose() {
@@ -67,19 +62,19 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: beigeCalido,
+          backgroundColor: AppColors.beigeCalido,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(
             "Restablecer contraseña",
-            style: TextStyle(color: azulProfundo, fontWeight: FontWeight.bold),
+            style: TextStyle(color: AppColors.azulProfundo, fontWeight: FontWeight.bold),
           ),
           content: TextField(
             controller: emailCtrl,
             decoration: InputDecoration(
               labelText: "Ingresa tu correo",
-              prefixIcon: Icon(Icons.email, color: naranjaAndino),
+              prefixIcon: Icon(Icons.email, color: AppColors.naranjaAndino),
               focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: naranjaAndino),
+                borderSide: BorderSide(color: AppColors.naranjaAndino),
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -90,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
                 emailCtrl.dispose();
                 Navigator.pop(context);
               },
-              child: Text("Cancelar", style: TextStyle(color: azulProfundo)),
+              child: Text("Cancelar", style: TextStyle(color: AppColors.azulProfundo)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -103,13 +98,13 @@ class _LoginPageState extends State<LoginPage> {
                     context: context,
                     builder: (context) {
                       return AlertDialog(
-                        backgroundColor: beigeCalido,
+                        backgroundColor: AppColors.beigeCalido,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
                         title: Text(
                           "Correo enviado",
-                          style: TextStyle(color: naranjaAndino),
+                          style: TextStyle(color: AppColors.naranjaAndino),
                         ),
                         content: Text(
                           "Hemos enviado un enlace a:\n\n$email\n\n📩 Si no lo ves, revisa también la carpeta de SPAM.",
@@ -120,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                             onPressed: () => Navigator.pop(context),
                             child: Text(
                               "Entendido",
-                              style: TextStyle(color: azulProfundo),
+                              style: TextStyle(color: AppColors.azulProfundo),
                             ),
                           ),
                         ],
@@ -134,7 +129,7 @@ class _LoginPageState extends State<LoginPage> {
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: naranjaAndino),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.naranjaAndino),
               child: const Text("Enviar"),
             ),
           ],
@@ -150,11 +145,11 @@ class _LoginPageState extends State<LoginPage> {
       child: Consumer<LoginViewModel>(
         builder: (context, vm, child) {
           return Scaffold(
-            backgroundColor: beigeCalido,
+            backgroundColor: AppColors.beigeCalido,
             body: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [azulProfundo, azulNoche],
+                  colors: [AppColors.azulProfundo, AppColors.azulNoche],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -185,17 +180,17 @@ class _LoginPageState extends State<LoginPage> {
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: azulProfundo,
+                              color: AppColors.azulProfundo,
                             ),
                           ),
                           const SizedBox(height: 32),
                           TextField(
                             controller: _emailCtrl,
                             decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.email, color: azulProfundo),
+                              prefixIcon: Icon(Icons.email, color: AppColors.azulProfundo),
                               labelText: 'Correo electrónico',
                               focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: naranjaAndino),
+                                borderSide: BorderSide(color: AppColors.naranjaAndino),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               border: OutlineInputBorder(
@@ -209,10 +204,10 @@ class _LoginPageState extends State<LoginPage> {
                             controller: _passCtrl,
                             obscureText: true,
                             decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.lock, color: azulProfundo),
+                              prefixIcon: Icon(Icons.lock, color: AppColors.azulProfundo),
                               labelText: 'Contraseña',
                               focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: naranjaAndino),
+                                borderSide: BorderSide(color: AppColors.naranjaAndino),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               border: OutlineInputBorder(
@@ -226,7 +221,7 @@ class _LoginPageState extends State<LoginPage> {
                               onPressed: () => _showResetPasswordDialog(vm),
                               child: Text(
                                 "¿Olvidaste tu contraseña?",
-                                style: TextStyle(color: naranjaAndino),
+                                style: TextStyle(color: AppColors.naranjaAndino),
                               ),
                             ),
                           ),
@@ -241,7 +236,7 @@ class _LoginPageState extends State<LoginPage> {
                                       child: ElevatedButton(
                                         onPressed: () => _onLoginPressed(vm),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: naranjaAndino,
+                                          backgroundColor: AppColors.naranjaAndino,
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(12),
                                           ),
@@ -268,12 +263,12 @@ class _LoginPageState extends State<LoginPage> {
                                           'Iniciar con Google',
                                           style: TextStyle(
                                             fontSize: 16,
-                                            color: azulProfundo,
+                                            color: AppColors.azulProfundo,
                                           ),
                                         ),
                                         onPressed: () => _onGooglePressed(vm),
                                         style: OutlinedButton.styleFrom(
-                                          side: BorderSide(color: azulProfundo),
+                                          side: BorderSide(color: AppColors.azulProfundo),
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(12),
                                           ),
@@ -294,7 +289,7 @@ class _LoginPageState extends State<LoginPage> {
                             },
                             child: Text(
                               '¿No tienes cuenta? Regístrate aquí',
-                              style: TextStyle(color: verdeQuillu),
+                              style: TextStyle(color: AppColors.verdeQuillu),
                             ),
                           ),
                         ],

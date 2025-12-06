@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/dashboard_viewmodel.dart';
-
-// 🎨 Colores (mismo look que tenías)
-const Color azulProfundo = Color(0xFF1E3A8A);
-const Color naranjaAndino = Color(0xFFF59E0B);
-const Color verdeQuillu = Color(0xFF4CAF50);
-const Color beigeCalido = Color(0xFFF4EBD0);
+import 'package:app_iot_db/theme/app_colors.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -37,10 +32,10 @@ class _DashboardPageState extends State<DashboardPage> {
       child: Consumer<DashboardViewModel>(
         builder: (context, vm, _) {
           return Scaffold(
-            backgroundColor: beigeCalido,
+            backgroundColor: AppColors.beigeCalido,
             appBar: AppBar(
               title: const Text('Dashboards'),
-              backgroundColor: azulProfundo,
+              backgroundColor: AppColors.azulProfundo,
               foregroundColor: Colors.white,
             ),
             body: Padding(
@@ -100,21 +95,21 @@ class _DashboardPageState extends State<DashboardPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Temperatura - últimas lecturas',
-                                style: TextStyle(fontWeight: FontWeight.bold, color: azulProfundo)),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.azulProfundo)),
                             const SizedBox(height: 8),
                             SizedBox(
                               height: 180,
                               child: temps.isEmpty
                                   ? Center(
                                       child: Text('No hay datos de temperatura',
-                                          style: TextStyle(color: azulProfundo.withOpacity(0.8))))
+                                          style: TextStyle(color: AppColors.azulProfundo.withOpacity(0.8))))
                                   : Center(child: Text('Sugerencia: dibujar gráfica con ${temps.length} muestras')),
                             ),
                             const SizedBox(height: 8),
                             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                              Text('Muestras: ${temps.length}', style: TextStyle(color: azulProfundo)),
+                              Text('Muestras: ${temps.length}', style: TextStyle(color: AppColors.azulProfundo)),
                               if (temps.isNotEmpty) Text('Última: ${temps.last.toStringAsFixed(1)} °C',
-                                  style: TextStyle(color: azulProfundo))
+                                  style: TextStyle(color: AppColors.azulProfundo))
                             ]),
                           ],
                         ),
@@ -140,7 +135,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             margin: const EdgeInsets.symmetric(vertical: 6),
                             child: ListTile(
                               leading: Icon(_iconForType(type), color: _colorForType(type)),
-                              title: Text(_labelForType(type), style: TextStyle(color: azulProfundo, fontWeight: FontWeight.w600)),
+                              title: Text(_labelForType(type), style: TextStyle(color: AppColors.azulProfundo, fontWeight: FontWeight.w600)),
                               subtitle: Text('Dur: ${value.toString()} · $timeStr'),
                             ),
                           );
@@ -206,17 +201,17 @@ class _DashboardPageState extends State<DashboardPage> {
   Color _colorForType(String? type) {
     switch (type) {
       case 'temperature':
-        return verdeQuillu;
+        return AppColors.verdeQuillu;
       case 'pir_motion':
       case 'pir_detec':
       case 'motion':
-        return naranjaAndino;
+        return AppColors.naranjaAndino;
       case 'alarm_test':
       case 'alarm':
       case 'alarm_trigger':
         return Colors.redAccent;
       default:
-        return azulProfundo.withOpacity(0.8);
+        return AppColors.azulProfundo.withOpacity(0.8);
     }
   }
 }
@@ -238,9 +233,9 @@ class _SummaryCard extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: azulProfundo)),
+          Text(value, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppColors.azulProfundo)),
           const SizedBox(height: 4),
-          Text(subtitle, textAlign: TextAlign.center, style: TextStyle(color: azulProfundo.withOpacity(0.8), fontSize: 12))
+          Text(subtitle, textAlign: TextAlign.center, style: TextStyle(color: AppColors.azulProfundo.withOpacity(0.8), fontSize: 12))
         ]),
       ),
     );

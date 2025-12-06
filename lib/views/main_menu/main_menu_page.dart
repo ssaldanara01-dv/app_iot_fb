@@ -2,12 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/main_menu_viewmodel.dart';
 import 'package:firebase_database/firebase_database.dart';
-
-/// 🎨 Paleta YanaGuard
-const Color azulProfundo = Color(0xFF1E3A8A);
-const Color naranjaAndino = Color(0xFFF59E0B);
-const Color verdeQuillu = Color(0xFF4CAF50);
-const Color beigeCalido = Color(0xFFF4EBD0);
+import 'package:app_iot_db/theme/app_colors.dart';
 
 class MainMenuPage extends StatefulWidget {
   const MainMenuPage({super.key});
@@ -21,8 +16,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
   @override
   void initState() {
     super.initState();
-    // Se inicializa en build dentro del provider create, o si registraste globalmente,
-    // obtén la instancia y llama vm.init() aquí.
+    // Se inicializa en build dentro del provider create, o si registraste globalmente, obtén la instancia y llama vm.init() aquí.
   }
 
   @override
@@ -38,10 +32,10 @@ class _MainMenuPageState extends State<MainMenuPage> {
           // Loading inicial (detectando dispositivo)
           if (vm.loadingDeviceDetect) {
             return Scaffold(
-              backgroundColor: beigeCalido,
+              backgroundColor: AppColors.beigeCalido,
               appBar: AppBar(
                   title: const Text('Menú Principal'),
-                  backgroundColor: azulProfundo),
+                  backgroundColor: AppColors.azulProfundo),
               body: const Center(child: CircularProgressIndicator()),
             );
           }
@@ -49,10 +43,10 @@ class _MainMenuPageState extends State<MainMenuPage> {
           // Error en detección
           if (vm.error != null) {
             return Scaffold(
-              backgroundColor: beigeCalido,
+              backgroundColor: AppColors.beigeCalido,
               appBar: AppBar(
                 title: const Text('Menú Principal'),
-                backgroundColor: azulProfundo,
+                backgroundColor: AppColors.azulProfundo,
               ),
               body: Center(child: Text('Error: ${vm.error}')),
             );
@@ -60,10 +54,10 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
           // UI principal
           return Scaffold(
-            backgroundColor: beigeCalido,
+            backgroundColor: AppColors.beigeCalido,
             appBar: AppBar(
               title: const Text('Menú Principal'),
-              backgroundColor: azulProfundo,
+              backgroundColor: AppColors.azulProfundo,
               foregroundColor: Colors.white,
               actions: [
                 IconButton(
@@ -120,12 +114,12 @@ class _MainMenuPageState extends State<MainMenuPage> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               elevation: 6,
                               child: ListTile(
-                                leading: Icon(Icons.motion_photos_on, color: pirEnabled ? naranjaAndino : azulProfundo),
-                                title: Text('Sensor PIR', style: TextStyle(color: azulProfundo, fontWeight: FontWeight.bold)),
+                                leading: Icon(Icons.motion_photos_on, color: pirEnabled ? AppColors.naranjaAndino : AppColors.azulProfundo),
+                                title: Text('Sensor PIR', style: TextStyle(color:  AppColors.azulProfundo, fontWeight: FontWeight.bold)),
                                 subtitle: Text('Habilitado: ${pirEnabled ? "Sí" : "No"}'),
                                 trailing: Switch(
                                   value: pirEnabled,
-                                  activeColor: naranjaAndino,
+                                  activeColor: AppColors.naranjaAndino,
                                   onChanged: (v) async {
                                     try {
                                       await vm.setPirEnabled(v);
@@ -144,8 +138,8 @@ class _MainMenuPageState extends State<MainMenuPage> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               elevation: 6,
                               child: ListTile(
-                                leading: Icon(Icons.alarm, color: alarm ? naranjaAndino : azulProfundo),
-                                title: Text('Alarma', style: TextStyle(color: azulProfundo, fontWeight: FontWeight.bold)),
+                                leading: Icon(Icons.alarm, color: alarm ? AppColors.naranjaAndino : AppColors.azulProfundo),
+                                title: Text('Alarma', style: TextStyle(color: AppColors.azulProfundo, fontWeight: FontWeight.bold)),
                                 subtitle: Text('Estado: ${alarm ? "Encendida" : "Apagada"}'),
                                 trailing: ElevatedButton(
                                   onPressed: () async {
@@ -156,7 +150,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
                                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error activando alarma: $e')));
                                     }
                                   },
-                                  style: ElevatedButton.styleFrom(backgroundColor: naranjaAndino),
+                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.naranjaAndino),
                                   child: const Text('Probar'),
                                 ),
                               ),
@@ -168,14 +162,14 @@ class _MainMenuPageState extends State<MainMenuPage> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               elevation: 6,
                               child: ListTile(
-                                leading: Icon(Icons.thermostat, color: verdeQuillu),
-                                title: Text('Temperatura', style: TextStyle(color: azulProfundo, fontWeight: FontWeight.bold)),
+                                leading: Icon(Icons.thermostat, color: AppColors.verdeQuillu),
+                                title: Text('Temperatura', style: TextStyle(color: AppColors.azulProfundo, fontWeight: FontWeight.bold)),
                                 subtitle: Text(temperature != null ? '${temperature.toStringAsFixed(1)} °C' : 'Sin lectura'),
                               ),
                             ),
 
                             const SizedBox(height: 12),
-                            Text('Últimos eventos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: azulProfundo)),
+                            Text('Últimos eventos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.azulProfundo)),
                             const SizedBox(height: 6),
 
                             // Lista de eventos: usamos el stream provisto por el VM
@@ -217,8 +211,8 @@ class _MainMenuPageState extends State<MainMenuPage> {
                                     return Card(
                                       margin: const EdgeInsets.symmetric(vertical: 6),
                                       child: ListTile(
-                                        leading: Icon(Icons.event, color: azulProfundo),
-                                        title: Text(ev['label'], style: TextStyle(color: azulProfundo, fontWeight: FontWeight.w600)),
+                                        leading: Icon(Icons.event, color: AppColors.azulProfundo),
+                                        title: Text(ev['label'], style: TextStyle(color: AppColors.azulProfundo, fontWeight: FontWeight.w600)),
                                         subtitle: Text('${ev['value'] != null ? ev['value'].toString() + '\n' : ''}$timestr'),
                                       ),
                                     );
