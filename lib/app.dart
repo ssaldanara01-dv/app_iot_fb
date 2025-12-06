@@ -2,12 +2,12 @@ import 'package:app_iot_db/views/pairing/pairing_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-import 'viewmodels/auth_viewmodel.dart';
-import 'views/auth/login_page.dart';
-import 'views/dashboard/dashboard_page.dart';
-import 'services/device/pairing_service.dart';
-import 'views/main_menu/main_menu_page.dart';
+import 'package:app_iot_db/viewmodels/auth_viewmodel.dart';
+import 'package:app_iot_db/views/auth/login_page.dart';
+import 'package:app_iot_db/views/dashboard/dashboard_page.dart';
+import 'package:app_iot_db/views/main_menu/main_menu_page.dart';
+import 'package:app_iot_db/viewmodels/pairing_view_model.dart';
+import 'package:app_iot_db/services/device/pairing_service.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -39,7 +39,10 @@ class App extends StatelessWidget {
           '/login': (context) => const LoginPage(),
           '/main': (context) => const MainMenuPage(),
           '/dashboard': (context) => const DashboardPage(),
-          '/pairing': (context) => const PairingPage(),
+          '/pairing': (context) => ChangeNotifierProvider(
+        create: (_) => PairingViewModel(PairingService()),
+        child: const PairingPage(),
+      ),
         },
       ),
     );
