@@ -34,8 +34,9 @@ class _MainMenuPageState extends State<MainMenuPage> {
             return Scaffold(
               backgroundColor: AppColors.beigeCalido,
               appBar: AppBar(
-                  title: const Text('Menú Principal'),
-                  backgroundColor: AppColors.azulProfundo),
+                title: const Text('Menú Principal'),
+                backgroundColor: AppColors.azulProfundo,
+              ),
               body: const Center(child: CircularProgressIndicator()),
             );
           }
@@ -70,10 +71,16 @@ class _MainMenuPageState extends State<MainMenuPage> {
                   tooltip: 'Ver Dashboard',
                   onPressed: () {
                     if (vm.deviceId.isNotEmpty) {
-                      Navigator.pushNamed(context, '/dashboard', arguments: vm.deviceId);
+                      Navigator.pushNamed(
+                        context,
+                        '/dashboard',
+                        arguments: vm.deviceId,
+                      );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Aún no se detectó el dispositivo.')),
+                        const SnackBar(
+                          content: Text('Aún no se detectó el dispositivo.'),
+                        ),
                       );
                     }
                   },
@@ -96,13 +103,20 @@ class _MainMenuPageState extends State<MainMenuPage> {
                         return Center(child: Text('Error: ${snapshot.error}'));
                       }
 
-                      final deviceMap = snapshot.data?.snapshot.value as Map<dynamic, dynamic>?;
+                      final deviceMap =
+                          snapshot.data?.snapshot.value
+                              as Map<dynamic, dynamic>?;
 
                       final bool pirEnabled = deviceMap?['pirEnabled'] == true;
                       final bool alarm = deviceMap?['alarm'] == true;
-                      final double? temperature = (deviceMap != null && deviceMap['temperature'] is num)
+                      final double? temperature =
+                          (deviceMap != null && deviceMap['temperature'] is num)
                           ? (deviceMap['temperature'] as num).toDouble()
-                          : null;
+                          : vm.lastTemperature;
+                      final double? humidity =
+                          (deviceMap != null && deviceMap['hum'] is num)
+                          ? (deviceMap['hum'] as num).toDouble()
+                          : vm.lastHumidity;
 
                       return Padding(
                         padding: const EdgeInsets.all(12.0),
@@ -111,12 +125,27 @@ class _MainMenuPageState extends State<MainMenuPage> {
                             // PIR
                             Card(
                               color: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               elevation: 6,
                               child: ListTile(
-                                leading: Icon(Icons.motion_photos_on, color: pirEnabled ? AppColors.naranjaAndino : AppColors.azulProfundo),
-                                title: Text('Sensor PIR', style: TextStyle(color:  AppColors.azulProfundo, fontWeight: FontWeight.bold)),
-                                subtitle: Text('Habilitado: ${pirEnabled ? "Sí" : "No"}'),
+                                leading: Icon(
+                                  Icons.motion_photos_on,
+                                  color: pirEnabled
+                                      ? AppColors.naranjaAndino
+                                      : AppColors.azulProfundo,
+                                ),
+                                title: Text(
+                                  'Sensor PIR',
+                                  style: TextStyle(
+                                    color: AppColors.azulProfundo,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  'Habilitado: ${pirEnabled ? "Sí" : "No"}',
+                                ),
                                 trailing: Switch(
                                   value: pirEnabled,
                                   activeColor: AppColors.naranjaAndino,
@@ -125,7 +154,15 @@ class _MainMenuPageState extends State<MainMenuPage> {
                                       await vm.setPirEnabled(v);
                                     } catch (e) {
                                       if (!mounted) return;
-                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error actualizando PIR: $e')));
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Error actualizando PIR: $e',
+                                          ),
+                                        ),
+                                      );
                                     }
                                   },
                                 ),
@@ -135,41 +172,161 @@ class _MainMenuPageState extends State<MainMenuPage> {
                             // Alarma
                             Card(
                               color: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               elevation: 6,
                               child: ListTile(
-                                leading: Icon(Icons.alarm, color: alarm ? AppColors.naranjaAndino : AppColors.azulProfundo),
-                                title: Text('Alarma', style: TextStyle(color: AppColors.azulProfundo, fontWeight: FontWeight.bold)),
-                                subtitle: Text('Estado: ${alarm ? "Encendida" : "Apagada"}'),
+                                leading: Icon(
+                                  Icons.alarm,
+                                  color: alarm
+                                      ? AppColors.naranjaAndino
+                                      : AppColors.azulProfundo,
+                                ),
+                                title: Text(
+                                  'Alarma',
+                                  style: TextStyle(
+                                    color: AppColors.azulProfundo,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  'Estado: ${alarm ? "Encendida" : "Apagada"}',
+                                ),
                                 trailing: ElevatedButton(
                                   onPressed: () async {
                                     try {
                                       await vm.triggerAlarmTest();
                                     } catch (e) {
                                       if (!mounted) return;
-                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error activando alarma: $e')));
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Error activando alarma: $e',
+                                          ),
+                                        ),
+                                      );
                                     }
                                   },
-                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.naranjaAndino),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.naranjaAndino,
+                                  ),
                                   child: const Text('Probar'),
                                 ),
                               ),
                             ),
 
-                            // Temperatura
+                            // Temperatura + Humedad (50% / 50%)
                             Card(
                               color: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               elevation: 6,
-                              child: ListTile(
-                                leading: Icon(Icons.thermostat, color: AppColors.verdeQuillu),
-                                title: Text('Temperatura', style: TextStyle(color: AppColors.azulProfundo, fontWeight: FontWeight.bold)),
-                                subtitle: Text(temperature != null ? '${temperature.toStringAsFixed(1)} °C' : 'Sin lectura'),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
+                                  children: [
+                                    // ---- MITAD IZQUIERDA (TEMPERATURA) ----
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.thermostat,
+                                                color: AppColors.verdeQuillu,
+                                                size: 26,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                'Temperatura',
+                                                style: TextStyle(
+                                                  color: AppColors.azulProfundo,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            temperature != null
+                                                ? '${temperature.toStringAsFixed(1)} °C'
+                                                : '-- °C',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    // Separador vertical
+                                    Container(
+                                      width: 1,
+                                      height: 45,
+                                      color: Colors.grey.shade300,
+                                    ),
+
+                                    // ---- MITAD DERECHA (HUMEDAD) ----
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.water_drop,
+                                                color: AppColors.azulProfundo,
+                                                size: 24,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                'Humedad',
+                                                style: TextStyle(
+                                                  color: AppColors.azulProfundo,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            humidity != null
+                                                ? '${humidity!.toStringAsFixed(1)} %'
+                                                : '-- %',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
 
                             const SizedBox(height: 12),
-                            Text('Últimos eventos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.azulProfundo)),
+                            Text(
+                              'Últimos eventos',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.azulProfundo,
+                              ),
+                            ),
                             const SizedBox(height: 6),
 
                             // Lista de eventos: usamos el stream provisto por el VM
@@ -179,19 +336,29 @@ class _MainMenuPageState extends State<MainMenuPage> {
                                 if (evSnap.hasError) {
                                   return Text('Error events: ${evSnap.error}');
                                 }
-                                if (!evSnap.hasData || evSnap.data?.snapshot.value == null) {
+                                if (!evSnap.hasData ||
+                                    evSnap.data?.snapshot.value == null) {
                                   return const Text('Sin eventos recientes.');
                                 }
 
                                 final raw = evSnap.data!.snapshot.value;
-                                final Map eventsMap = Map<dynamic, dynamic>.from(raw as Map);
+                                final Map eventsMap =
+                                    Map<dynamic, dynamic>.from(raw as Map);
                                 final eventsList = <Map<String, dynamic>>[];
 
                                 eventsMap.forEach((k, v) {
-                                  final ev = Map<String, dynamic>.from(v as Map);
+                                  final ev = Map<String, dynamic>.from(
+                                    v as Map,
+                                  );
                                   final ts = vm.getEventTimestamp(ev);
-                                  final label = vm.labelForType(ev['type']?.toString() ?? '');
-                                  final value = ev['temp_c'] ?? ev['value'] ?? ev['temperature'] ?? '-';
+                                  final label = vm.labelForType(
+                                    ev['type']?.toString() ?? '',
+                                  );
+                                  final value =
+                                      ev['temp_c'] ??
+                                      ev['value'] ??
+                                      ev['temperature'] ??
+                                      '-';
                                   eventsList.add({
                                     'type': ev['type'] ?? 'evento',
                                     'label': label,
@@ -201,19 +368,38 @@ class _MainMenuPageState extends State<MainMenuPage> {
                                   });
                                 });
 
-                                eventsList.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+                                eventsList.sort(
+                                  (a, b) =>
+                                      b['timestamp'].compareTo(a['timestamp']),
+                                );
 
                                 return Column(
                                   children: eventsList.take(20).map((ev) {
-                                    final dt = DateTime.fromMillisecondsSinceEpoch(ev['timestamp']).toLocal();
+                                    final dt = DateTime.fromMillisecondsSinceEpoch(
+                                      ev['timestamp'],
+                                      isUtc: true,
+                                    ).subtract(const Duration(hours: 5)); // Ajuste a UTC-5 (Perú)
                                     final timestr =
                                         '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
                                     return Card(
-                                      margin: const EdgeInsets.symmetric(vertical: 6),
+                                      margin: const EdgeInsets.symmetric(
+                                        vertical: 6,
+                                      ),
                                       child: ListTile(
-                                        leading: Icon(Icons.event, color: AppColors.azulProfundo),
-                                        title: Text(ev['label'], style: TextStyle(color: AppColors.azulProfundo, fontWeight: FontWeight.w600)),
-                                        subtitle: Text('${ev['value'] != null ? ev['value'].toString() + '\n' : ''}$timestr'),
+                                        leading: Icon(
+                                          Icons.event,
+                                          color: AppColors.azulProfundo,
+                                        ),
+                                        title: Text(
+                                          ev['label'],
+                                          style: TextStyle(
+                                            color: AppColors.azulProfundo,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          '${ev['value'] != null ? ev['value'].toString() + '\n' : ''}$timestr',
+                                        ),
                                       ),
                                     );
                                   }).toList(),

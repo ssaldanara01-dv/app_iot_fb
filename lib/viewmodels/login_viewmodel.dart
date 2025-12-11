@@ -53,8 +53,6 @@ class LoginViewModel extends ChangeNotifier {
           debugPrint('Retry después de TypeError falló: $e2');
           return 'No fue posible iniciar sesión. Intenta de nuevo más tarde.';
         }
-      } else {
-        return 'Error inesperado en el flujo de autenticación.';
       }
     } on FirebaseAuthException catch (e) {
       return e.message ?? 'Error de autenticación';
@@ -115,7 +113,6 @@ class LoginViewModel extends ChangeNotifier {
           return 'Error en Google Sign-In (intento fallido).';
         }
       }
-      return 'Error transitorio en Google Sign-In.';
     } on FirebaseAuthException catch (e) {
       return e.message ?? 'Error en autenticación con Google';
     } catch (e) {

@@ -28,6 +28,10 @@ class DashboardViewModel extends ChangeNotifier {
   DateTime? lastAlarm;
   DateTime? lastSystem;
 
+  // Para gráfico de pastel: conteo total de tipos de eventos
+  Map<String, int> _eventTypeCount = {};
+  Map<String, int> get eventTypeCount => _eventTypeCount;
+
   DashboardViewModel({required this.deviceId});
 
   void init() {
@@ -91,6 +95,7 @@ class DashboardViewModel extends ChangeNotifier {
     lastAlarm = null;
     lastSystem = null;
     _temps = [];
+    _eventTypeCount = {};
   }
 
   void _computeMetrics() {
@@ -103,16 +108,25 @@ class DashboardViewModel extends ChangeNotifier {
       final type = (d['type'] as String).toLowerCase();
       final ts = d['timestamp'] as int;
 
+      // Contar tipos de eventos para el gráfico de pastel
+      String groupedType = 'Otro';
       if (type == 'motion' || type == 'pir_motion' || type.contains('pir')) {
+        groupedType = 'Movimiento';
         if (ts >= boundary24h) motions24h++;
         lastMotion ??= DateTime.fromMillisecondsSinceEpoch(ts);
       } else if (type == 'alarm' || type == 'alarm_test' || type == 'alarm_trigger') {
+        groupedType = 'Alarma';
         if (ts >= boundary24h) alarms24h++;
         lastAlarm ??= DateTime.fromMillisecondsSinceEpoch(ts);
       } else if (type == 'pir_toggle' || type.startsWith('system') || type.startsWith('security')) {
+        groupedType = 'Sistema';
         if (ts >= boundary24h) systemChanges24h++;
         lastSystem ??= DateTime.fromMillisecondsSinceEpoch(ts);
+      } else if (type.contains('temp') || type == 'temperature') {
+        groupedType = 'Temperatura';
       }
+      
+      _eventTypeCount[groupedType] = (_eventTypeCount[groupedType] ?? 0) + 1;
 
       if (d['temp'] != null) {
         tempsLocal.add(d['temp'] as double);
@@ -124,18 +138,35 @@ class DashboardViewModel extends ChangeNotifier {
 
   int _getEventTimestamp(Map ev) {
     final t = ev['timestamp'];
-    if (t is int) return t;
-    if (t is num) return t.toInt();
+    if (t is int) {
+      if (t > 946684800000) { // 2000-01-01 en ms
+        return t;
+      }
+    }
+    if (t is num) {
+      final intT = t.toInt();
+      if (intT > 946684800000) {
+        return intT;
+      }
+    }
 
     final s = (ev['startTime'] ?? ev['endTime'] ?? ev['createdAt'])?.toString();
     if (s != null) {
       try {
-        return DateTime.parse(s).millisecondsSinceEpoch;
+        final parsed = DateTime.parse(s).millisecondsSinceEpoch;
+        if (parsed > 946684800000) {
+          return parsed;
+        }
       } catch (_) {
         try {
           final cleaned = s.replaceAll('"', '');
           final dt2 = DateTime.tryParse(cleaned);
-          if (dt2 != null) return dt2.millisecondsSinceEpoch;
+          if (dt2 != null) {
+            final parsed = dt2.millisecondsSinceEpoch;
+            if (parsed > 946684800000) {
+              return parsed;
+            }
+          }
         } catch (_) {}
       }
     }

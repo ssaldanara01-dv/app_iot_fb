@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/dashboard_viewmodel.dart';
 import 'package:app_iot_db/theme/app_colors.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -103,7 +104,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                   ? Center(
                                       child: Text('No hay datos de temperatura',
                                           style: TextStyle(color: AppColors.azulProfundo.withOpacity(0.8))))
-                                  : Center(child: Text('Sugerencia: dibujar gráfica con ${temps.length} muestras')),
+                                  : _TemperatureBarChart(temperatures: temps),
                             ),
                             const SizedBox(height: 8),
                             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -116,6 +117,31 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    Card(
+                      color: Colors.white,
+                      elevation: 6,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Distribución de eventos',
+                                style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.azulProfundo)),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              height: 100,
+                              child: vm.eventTypeCount.isEmpty
+                                  ? Center(
+                                      child: Text('Sin eventos',
+                                          style: TextStyle(color: AppColors.azulProfundo.withOpacity(0.8))))
+                                  : _EventDistributionPieChart(eventTypeCount: vm.eventTypeCount),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     const Align(alignment: Alignment.centerLeft, child: Text('Eventos recientes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
                     const SizedBox(height: 8),
                     Expanded(
@@ -123,7 +149,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         itemCount: docs.length,
                         itemBuilder: (context, i) {
                           final d = docs[i];
-                          final ts = DateTime.fromMillisecondsSinceEpoch(d['timestamp'] as int).toLocal();
+                          final ts = DateTime.fromMillisecondsSinceEpoch(d['timestamp'] as int, isUtc: true).subtract(const Duration(hours: 5));
                           final timeStr =
                               '${ts.year}-${ts.month.toString().padLeft(2, '0')}-${ts.day.toString().padLeft(2, '0')} ${ts.hour.toString().padLeft(2, '0')}:${ts.minute.toString().padLeft(2, '0')}';
                           final type = d['type'] as String;
@@ -213,6 +239,168 @@ class _DashboardPageState extends State<DashboardPage> {
       default:
         return AppColors.azulProfundo.withOpacity(0.8);
     }
+  }
+}
+
+class _TemperatureBarChart extends StatelessWidget {
+  final List<double> temperatures;
+
+  const _TemperatureBarChart({required this.temperatures});
+
+  @override
+  Widget build(BuildContext context) {
+    if (temperatures.isEmpty) {
+      return const Center(child: Text('Sin datos'));
+    }
+
+    // Limitar a los últimos 30 datos para mejor visualización
+    final displayTemps = temperatures.length > 30
+        ? temperatures.sublist(temperatures.length - 30)
+        : temperatures;
+
+    // Encontrar min y max para escala
+    final minTemp = displayTemps.reduce((a, b) => a < b ? a : b);
+    final maxTemp = displayTemps.reduce((a, b) => a > b ? a : b);
+    final padding = (maxTemp - minTemp) * 0.1;
+    final minY = ((minTemp - padding).clamp(0.0, double.infinity)) as double;
+    final maxY = maxTemp + padding;
+
+    return BarChart(
+      BarChartData(
+        maxY: maxY,
+        minY: minY,
+        barGroups: List.generate(
+          displayTemps.length,
+          (index) => BarChartGroupData(
+            x: index,
+            barRods: [
+              BarChartRodData(
+                toY: displayTemps[index],
+                color: AppColors.verdeQuillu,
+                width: 6,
+              ),
+            ],
+          ),
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index % (displayTemps.length > 10 ? displayTemps.length ~/ 5 : 1) == 0 && index < displayTemps.length) {
+                  return Text(
+                    index.toString(),
+                    style: const TextStyle(fontSize: 8),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  '${value.toStringAsFixed(0)}°',
+                  style: const TextStyle(fontSize: 9),
+                );
+              },
+              reservedSize: 35,
+            ),
+          ),
+        ),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: (maxY - minY) / 4,
+        ),
+        borderData: FlBorderData(show: false),
+      ),
+    );
+  }
+}
+
+class _EventDistributionPieChart extends StatelessWidget {
+  final Map<String, int> eventTypeCount;
+
+  const _EventDistributionPieChart({required this.eventTypeCount});
+
+  @override
+  Widget build(BuildContext context) {
+    if (eventTypeCount.isEmpty) {
+      return const Center(child: Text('Sin datos'));
+    }
+
+    final colors = {
+      'Movimiento': AppColors.naranjaAndino,
+      'Alarma': Colors.redAccent,
+      'Sistema': AppColors.azulProfundo,
+      'Temperatura': AppColors.verdeQuillu,
+      'Otro': Colors.grey,
+    };
+
+    final total = eventTypeCount.values.fold<int>(0, (a, b) => a + b);
+
+    return SingleChildScrollView(
+      child: Column(
+        children: eventTypeCount.entries
+            .map((entry) {
+              final percentage = ((entry.value / total) * 100).toStringAsFixed(1);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: colors[entry.key] ?? Colors.grey,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              entry.key,
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '${entry.value} ($percentage%)',
+                          style: const TextStyle(fontSize: 10),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: entry.value / total,
+                        minHeight: 12,
+                        backgroundColor: Colors.grey.shade300,
+                        valueColor: AlwaysStoppedAnimation(
+                          colors[entry.key] ?? Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            })
+            .toList(),
+      ),
+    );
   }
 }
 
